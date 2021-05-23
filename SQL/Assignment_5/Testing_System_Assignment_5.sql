@@ -36,11 +36,22 @@ CREATE VIEW `list of account`  AS
 												FROM 		Groupaccount GA
 												JOIN  		`Account` A ON GA.AccountID = A.AccountID
 												GROUP BY 	A.AccountID) AS MaxUsername) -- MaxUsername dung de lam gi 
-                                                LIMIT 5
 												;
- 
 SELECT *
 FROM `list of account`;
+
+-- bang Cte 
+WITH Cte_dem_acc_trong_Group AS(
+SELECT COUNT(AccountID) AS COUNTA
+FROM  GroupAccount 
+GROUP BY AccountID
+)
+SELECT 		A.AccountID, A.FullName, COUNT(GA.AccountID)
+FROM		GroupAccount GA
+JOIN 		`Account` A ON  A.AccountID = GA.AccountID
+GROUP BY 	GA.AccountID
+HAVING 		COUNT(GA.AccountID) = ( SELECT MAX(COUNTA)
+									FROM Cte_dem_acc_trong_Group);
 
 -- Question 3: Tạo view có chứa câu hỏi có những content quá dài (content quá 25 từ  được coi là quá dài) và xóa nó đi
 DROP VIEW IF EXISTS `Remove_long_content`;
@@ -55,10 +66,22 @@ CREATE VIEW `Remove_long_content`  AS (
     WHERE Q.QuestionID IN 	(SELECT a.QuestionID 
 							 FROM `Remove_long_content` a) ;
 
+-- Cach 2: Lam bang CTE
+WITH Cte_content_dai_nhat AS(
+SELECT QuestionID, LENGTH(Content) AS dem_so_chu
+FROM Question 
+WHERE LENGTH(Content) >= 25
+)
+DELETE 
+FROM Question
+WHERE QuestionID IN ( SELECT QuestionID
+					  FROM 	 Cte_content_dai_nhat);
+                      
+
 -- Question 4: Tạo view có chứa danh sách các phòng ban có nhiều nhân viên nhất
 DROP VIEW IF EXISTS `List of departments`;
 CREATE VIEW `List of departments`  AS 
-SELECT D.*, COUNT(A.DepartmentID) AS Dach_sach_phong_ban_co_nhieu_nhan_vien_nhat
+SELECT 		D.*, COUNT(A.DepartmentID) AS Dach_sach_phong_ban_co_nhieu_nhan_vien_nhat
 FROM 		`Account` A
 JOIN 		Department D ON A.DepartmentID = D.DepartmentID
 GROUP BY 	A.DepartmentID
@@ -72,27 +95,19 @@ HAVING  	COUNT(A.DepartmentID) IN (SELECT MAX(COUNTA)
 
 -- Cách 2: Làm bằng CTE 
 WITH MAX_COUNT_DEPARTMENTID AS(
-	SELECT MAX(COUNTA)
-			FROM 
-					( SELECT 		COUNT(A.DepartmentID) AS COUNTA
-					  FROM  		`Account` A
-					  JOIN   		Department D ON A.DepartmentID = D.DepartmentID
-					  GROUP BY 		A.DepartmentID) AS MaxDepartmentName ),
-COUNT_DEPARTMENTID AS (
+ SELECT 		COUNT(DepartmentID) AS COUNTA
+ FROM  		`Account` 
+ GROUP BY 		DepartmentID
+)
 		SELECT 		D.*, COUNT(A.DepartmentID) AS Dach_sach_phong_ban_co_nhieu_nhan_vien_nhat
 		FROM 		`Account` A
 		JOIN 		Department D ON A.DepartmentID = D.DepartmentID
 		GROUP BY 	A.DepartmentID
-		HAVING  	COUNT(A.DepartmentID))
+		HAVING  	COUNT(A.DepartmentID) = (SELECT MAX(COUNTA)
+											   FROM	MAX_COUNT_DEPARTMENTID );
         
-        SELECT *
-        FROM COUNT_DEPARTMENTID
-        WHERE Dach_sach_phong_ban_co_nhieu_nhan_vien_nhat = ( 	SELECT *
-																FROM MAX_COUNT_DEPARTMENTID);
-															   
-                                      
-SELECT *
-FROM `List of departments`;
+
+															    
 
 -- Question 5: Tạo view có chứa tất các các câu hỏi do user họ Nguyễn tạo
 SELECT Q.QuestionID, Q.Content, A.FullName
