@@ -43,10 +43,10 @@ JOIN 	 Category_Question CQ ON  CQ.CategoryID = Q.CategoryID
 GROUP BY CQ.CategoryID ;
  
 --   Question 7:  Thông kê mỗi Question được sử dụng trong bao nhiêu Exam
-SELECT 	 Q.QuestionID, Q.Content , COUNT(Q.QuestionID)  AS Thong_ke_so_su_dung_trong_Exam
-FROM 	 ExamQuestion EQ
-JOIN 	 Question Q ON  EQ.QuestionID = Q.QuestionID
-GROUP BY Q.QuestionID ;
+SELECT q.QuestionID, q.Content, COUNT( eq.QuestionID) AS So_cau_hoi_trong_Exam
+FROM Question q
+LEFT JOIN Examquestion eq ON q.QuestionID = eq.QuestionID
+GROUP BY q.QuestionID;
 
 -- Question 8: Lấy ra Question có nhiều câu trả lời nhất
 
@@ -69,19 +69,31 @@ JOIN 	 `Group` GR ON  GR.GroupID = GRA.GroupID
 GROUP BY GR.GroupID ;
 
 -- Question 10: Tìm chức vụ có ít người nhất 
-SELECT 	  P.PositionID, P.Position_Name , COUNT(P.Position_Name) AS Chuc_vu
+SELECT 	  P.PositionID, P.PositionName , COUNT(P.PositionName) AS Chuc_vu
 FROM 	 `Account` A
 JOIN 	 Position P ON  P.PositionID = A.PositionID 
-GROUP BY P.Position_Name
-HAVING   COUNT(P.Position_Name) = (SELECT  MIN(CountP) 
+GROUP BY P.PositionName
+HAVING   COUNT(P.PositionName) = (SELECT  MIN(CountP) 
 									FROM 
 											(SELECT  COUNT(P.PositionID) AS CountP
 											FROM 	 `Account` A
 											JOIN 	 Position P  ON  P.PositionID  = A.PositionID 
 											GROUP BY P.PositionID) AS MinPosition)
-                                            ;
- -- Question 11: Thống kê mỗi phòng ban có bao nhiêu dev, test, scrum master, PM     
- 
+                                            ;   
+ -- Question 11: Thống kê mỗi phòng ban có bao nhiêu dev, test, scrum master, PM
+SELECT		d.DepartmentID, d.DepartmentName, p.PositionName, count(p.PositionID) As SL 
+FROM 		`Account` a
+JOIN 		Department d On a.DepartmentID = d.DepartmentID
+JOIN 		Position p ON a.PositionID = p.PositionID
+GROUP BY 	a.DepartmentID, a.PositionID
+ORDER BY 	DepartmentID ,  PositionName ;
+
+SELECT		*       -- de hieu bai can bang nay. ^^
+FROM 		`Account` a
+JOIN 		Department d On a.DepartmentID = d.DepartmentID
+JOIN 		Position p ON a.PositionID = p.PositionID
+ORDER BY 	a.DepartmentID, a.PositionID;
+
  -- Question 12: Lấy thông tin chi tiết của câu hỏi bao gồm: thông tin cơ bản của question, loại câu hỏi, ai là người tạo ra câu hỏi, câu trả lời là gì, …
 SELECT 	Q.QuestionID AS Ma_cau_hoi , Q.Content AS Noi_dung_cau_hoi, CQ.Category_Name AS Loai_cau_hoi, TQ.Type_Name AS Dinh_danh_cau_hoi, A.User_Name AS Nguoi_tao_cau_hoi, Q.CreateDate AS Ngay_tao_cau_hoi
 FROM 	Question Q
