@@ -1,0 +1,12 @@
+package Vit.com.vn;
+
+public class Question {
+	int id;
+	String Content;
+	Category category;
+	Type type;
+	Creator creator;
+	CreateDate Date;
+	
+	
+}

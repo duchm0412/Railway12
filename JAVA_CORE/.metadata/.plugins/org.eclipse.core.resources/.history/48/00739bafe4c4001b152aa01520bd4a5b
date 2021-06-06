@@ -1,0 +1,15 @@
+package Vit.com.vn;
+
+public class FirstClass {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		int a=1;
+		int b=5;
+		String hoTen ="Hoang Minh Duc";
+		System.out.println("Hello world");
+		System.out.println("Ten toi la: " + hoTen);
+		System.out.println("Tong cua " + a + " va " + b + " la: " + (a + b));
+	}
+
+}
